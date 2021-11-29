@@ -1,0 +1,209 @@
+<html>
+<head>
+<style>
+/*
+The Personal Website of Joel Savitz
+Copyright (C) 2019 Joel Savitz
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/ 
+
+hr {
+  background: #add8e6 ;
+  height: 2px ;
+  border: 0px ;
+}
+
+body {
+  padding-top: 10px;
+  display: block ;
+  margin: auto ;
+  width: 40% ;
+  font-family: courier ;
+}
+
+@media only screen and (max-width: 1000px) {
+  body {
+    width: 90% ;
+  }
+}
+
+img {
+  width: 35% ;
+  height: auto ;
+}
+
+a {
+  color: #2db8d4 ;
+}
+
+a:visited {
+  color: #005d70 ;
+}
+
+p {
+  font-size: 11pt ;
+}
+
+h5 {
+  font-size: 14pt ;
+  margin: 0 ;
+}
+</style>
+
+
+</head>
+<body>
+<h1>Test</h1>
+
+<script>var roomlocation = { A: 1, B: 0, C: 0 };roomname="testz"</script>
+<canvas id="minimap" width="400" height="200" style="border:1px solid #000000;position:fixed;right:0;top:0"></canvas><div id="mapinfo" style="border:1px solid #000000;position:fixed;right:0;top:200;width:400;height:20;text-align:center;padding-top:3px"></div><script>var maparr = [ [ 0, 0, 0, "host/x" ], [ 0, 1, 0, "host/y" ], [ 1, 0, 0, "host/x/z" ], [ -1, 0, 0, "host/nuts" ], [ -2, 0, 0, "host/notes" ], [ 1, 2, 0, "alt/help" ], [ 1, 1, 0, "host/port" ], [ 2, 2, 0, "alt/bill" ], ]
+// width, height
+var WW = 400
+var HH = 200
+
+// room size
+var RR = 20
+
+// center
+var WWo = WW/2
+var HHo = HH/2
+
+
+// convert coordinates: cartesian to canvas
+function CC(a,b) {
+	a += WWo
+	b = HHo - b
+
+	return {a,b}
+}
+
+// canvas coords of current room
+var roomcoords = CC(roomlocation.A * RR, roomlocation.B * RR)
+
+function mksquare(a,b,size) {
+	girth = size/2
+	x = CC(a,b)
+	ctx.strokeRect(x.a - girth, x.b - girth, size, size)
+
+	if (x.a === roomcoords.a && x.b === roomcoords.b) {
+		ctx.fillStyle = "red";
+		ctx.fillRect(x.a - girth, x.b - girth, size, size)
+	}
+
+}
+
+
+function mkroom(a,b) {
+	a *= RR
+	b *= RR
+	mksquare(a,b,RR)
+}
+
+var coordmap = {}
+
+function drawmap() {
+	var x,y,z,tmp
+	// coordinate table
+	ctab = document.getElementById("coordtab")
+
+	for (var i = 0; i < maparr.length; ++i) {
+		if (!((x = maparr[i][0]) in coordmap)) {
+			coordmap[x] = {}
+		}
+		tmp = coordmap[x]
+		if (!((y = maparr[i][1]) in tmp)) {
+			tmp[y] = {}
+		}
+		tmp = tmp[y]
+		if (!((z = maparr[i][2]) in tmp)) {
+			tmp[z] = {}
+		}
+		tmp[z] = maparr[i][3]
+
+		mkroom(x,y)
+	}
+
+	var mapinfo = document.getElementById("mapinfo")
+	var l = roomlocation
+	mapinfo.innerHTML = roomname + " (" + l.A + "," + l.B + "," + l.C + ")"
+
+}
+
+// a key map of the controls
+var ctrls = {
+  37: "left",
+  38: "up",
+  39: "right",
+  40: "down",
+}
+
+function attemptmove(coords) {
+	var r = roomlocation
+	var link = ""
+
+	// "page table" lookup
+	if (coords.A in coordmap) {
+	if (coords.B in coordmap[coords.A]) {
+	if (coords.C in coordmap[coords.A][coords.B]) {
+		paddr = coordmap[coords.A][coords.B][coords.C]
+		currentpaddr = coordmap[r.A][r.B][r.C]
+		patharr = currentpaddr.split("/")
+		for (var i = 0; i < patharr.length; ++i) {
+			link += "../"
+		}
+		link += paddr + "/index.html"
+		console.log(link)
+
+		window.location.href = link
+	}}}
+}
+
+document.addEventListener("keydown", function(e) {
+
+	var key = e.keyCode
+
+	var nxt = JSON.parse(JSON.stringify(roomlocation))
+	
+	switch(ctrls[e.keyCode]) {
+	case "right":
+		nxt.A += 1
+		break
+	case "left":
+		nxt.A -= 1
+		break
+	case "up":
+		nxt.B += 1
+		break
+	case "down":
+		nxt.B -= 1
+		break
+	default:
+		return
+	}
+
+	attemptmove(nxt)
+
+});
+
+var canvas = document.getElementById("minimap");
+var ctx = canvas.getContext("2d");
+drawmap()
+</script>
+
+
+<h1 id="test-z">Test Z</h1>
+<p>Third</p>
+</body>
+</html>
